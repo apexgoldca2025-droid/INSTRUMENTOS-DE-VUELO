@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instrumentos de Vuelo - Simulador Interactivo</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --bg-card: #12161f;
+      --bg-panel: #1a202c;
+      --accent-gold: #ffb703;
+      --accent-gold-glow: rgba(255, 183, 3, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-dark: #2d3748;
+      --font-mono: 'Courier New', Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* HEADER NAVIGATION */
+    header {
+      background: rgba(10, 12, 16, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-main);
+    }
+
+    .brand-title i {
+      color: var(--accent-gold);
+    }
+
+    .dev-tag-top {
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      background: rgba(255, 183, 3, 0.1);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      font-family: var(--font-mono);
+      display: none;
+    }
+
+    @media(min-width: 640px) {
+      .dev-tag-top { display: inline-block; }
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: #000;
+      padding: 0.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-dark);
+    }
+
+    .nav-tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-tab.active {
+      background: var(--accent-gold);
+      color: #000;
+      box-shadow: 0 0 10px var(--accent-gold-glow);
+    }
+
+    .audio-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .audio-btn.active {
+      color: var(--accent-gold);
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 8px var(--accent-gold-glow);
+    }
+
+    /* MAIN CONTAINER */
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out forwards;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* DEVELOPER BANNER */
+    .dev-banner {
+      background: #000000;
+      border: 1px solid #ffd700;
+      border-radius: 8px;
+      padding: 0.8rem 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      text-align: center;
+    }
+
+    .dev-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      color: #ffd700;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .dev-title-row i {
+      font-size: 1rem;
+    }
+
+    /* SIX PACK GRID */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard-layout {
+        grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      }
+    }
+
+    .six-pack-container {
+      background: #0d0f12;
+      border: 2px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .six-pack-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    .six-pack-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .six-pack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      justify-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .six-pack-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .gauge-card {
+      background: #000;
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: 1rem;
+      width: 100%;
+      max-width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .gauge-card:hover, .gauge-card.active-gauge {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 15px var(--accent-gold-glow);
+      transform: translateY(-2px);
+    }
+
+    .gauge-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+
+    canvas {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: #050505;
+    }
+
+    /* CONTROLS PANEL */
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 0.75rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      color: var(--accent-gold);
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-panel);
+      border-radius: 3px;
+      outline: none;
+      accent-color: var(--accent-gold);
+    }
+
+    .btn-reset {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-dark);
+      color: var(--text-main);
+      padding: 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-reset:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--accent-gold);
+    }
+
+    /* INSTRUMENT DETAIL BOX */
+    .detail-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .detail-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--accent-gold-glow);
+      color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .detail-title-container h2 {
+      font-size: 1.2rem;
+      color: var(--text-main);
+    }
+
+    .detail-title-container p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .detail-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .detail-card {
+      background: var(--bg-panel);
+      border-radius: 8px;
+      padding: 1rem;
+      border-left: 3px solid var(--accent-gold);
+    }
+
+    .detail-card h3 {
+      font-size: 0.85rem;
+      color: var(--accent-gold);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .detail-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* THEORY SECTION */
+    .theory-section {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .theory-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .theory-card h2 {
+      font-size: 1.3rem;
+      color: var(--accent-gold);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .theory-content {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .theory-content p {
+      margin-bottom: 1rem;
+    }
+
+    .theory-list {
+      list-style-position: inside;
+      margin-bottom: 1rem;
+    }
+
+    .theory-list li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* FOOTER */
+    footer {
+      background: #000;
+      border-top: 1px solid var(--border-dark);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    footer p span {
+      color: var(--accent-gold);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-title">
+      <i class="fa-solid fa-plane-departure"></i>
+      <span>AeroInstruments</span>
+      <span class="dev-tag-top">S1. Alfredo Belandria</span>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('sim')">
+        <i class="fa-solid fa-gauge-high"></i> Simulador
+      </button>
+      <button class="nav-tab" onclick="switchTab('theory')">
+        <i class="fa-solid fa-book-open"></i> Teoría
+      </button>
+    </div>
+
+    <button class="audio-btn" id="audioToggleBtn" title="Activar/Desactivar Sonidos" onclick="toggleAudio()">
+      <i class="fa-solid fa-volume-xmark" id="audioIcon"></i>
+    </button>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <!-- TAB 1: SIMULATOR -->
+    <div id="sim-tab" class="tab-content active">
+
+      <!-- DEVELOPER BANNER -->
+      <div class="dev-banner">
+        <div class="dev-title-row">
+          <i class="fa-solid fa-certificate"></i>
+          <span>DESARROLLADO POR: S1. Alfredo Belandria</span>
+        </div>
+      </div>
+
+      <div class="dashboard-layout">
+        <!-- SIX PACK BOARD -->
+        <div class="six-pack-container">
+          <div class="six-pack-header">
+            <div class="six-pack-title">
+              <i class="fa-solid fa-sliders"></i> Panel "Six Pack" Analógico
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Haz clic en un reloj para ver detalles</span>
+          </div>
+
+          <div class="six-pack-grid">
+            <!-- 1. ASI -->
+            <div class="gauge-card active-gauge" id="card-asi" onclick="selectGauge('asi')">
+              <canvas id="canvas-asi" width="200" height="200"></canvas>
+              <div class="gauge-title">Anemómetro (ASI)</div>
+            </div>
+            <!-- 2. AI -->
+            <div class="gauge-card" id="card-ai" onclick="selectGauge('ai')">
+              <canvas id="canvas-ai" width="200" height="200"></canvas>
+              <div class="gauge-title">Horizonte Artificial (AI)</div>
+            </div>
+            <!-- 3. ALT -->
+            <div class="gauge-card" id="card-alt" onclick="selectGauge('alt')">
+              <canvas id="canvas-alt" width="200" height="200"></canvas>
+              <div class="gauge-title">Altímetro (ALT)</div>
+            </div>
+            <!-- 4. TC -->
+            <div class="gauge-card" id="card-tc" onclick="selectGauge('tc')">
+              <canvas id="canvas-tc" width="200" height="200"></canvas>
+              <div class="gauge-title">Coordinador de Giro (TC)</div>
+            </div>
+            <!-- 5. HI -->
+            <div class="gauge-card" id="card-hi" onclick="selectGauge('hi')">
+              <canvas id="canvas-hi" width="200" height="200"></canvas>
+              <div class="gauge-title">Indicador de Rumbo (HI)</div>
+            </div>
+            <!-- 6. VSI -->
+            <div class="gauge-card" id="card-vsi" onclick="selectGauge('vsi')">
+              <canvas id="canvas-vsi" width="200" height="200"></canvas>
+              <div class="gauge-title">Variómetro (VSI)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROLS PANEL -->
+        <div class="controls-panel">
+          <div class="panel-title">
+            <i class="fa-solid fa-gamepad"></i> Mandos de Control
+          </div>
+
+          <!-- Airspeed -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Velocidad (Airspeed)</span>
+              <span class="control-value" id="val-speed">100 KTS</span>
+            </div>
+            <input type="range" id="input-speed" min="0" max="200" value="100" oninput="updateValues()">
+          </div>
+
+          <!-- Pitch -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Inclinación / Cabeceo (Pitch)</span>
+              <span class="control-value" id="val-pitch">0°</span>
+            </div>
+            <input type="range" id="input-pitch" min="-20" max="20" value="0" oninput="updateValues()">
+          </div>
+
+          <!-- Roll -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Ladeo / Alabeo (Roll)</span>
+              <span class="control-value" id="val-roll">0°</span>
+            </div>
+            <input type="range" id="input-roll" min="-45" max="45" value="0" oninput="updateValues()">
+          </div>
+
+          <!-- Altitude -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Altitud</span>
+              <span class="control-value" id="val-alt">2,500 FT</span>
+            </div>
+            <input type="range" id="input-alt" min="0" max="10000" step="20" value="2500" oninput="updateValues()">
+          </div>
+
+          <!-- Heading -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Rumbo (Heading)</span>
+              <span class="control-value" id="val-heading">360° (N)</span>
+            </div>
+            <input type="range" id="input-heading" min="0" max="359" value="0" oninput="updateValues()">
+          </div>
+
+          <!-- VSI -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Velocidad Vertical (VSI)</span>
+              <span class="control-value" id="val-vsi">0 FPM</span>
+            </div>
+            <input type="range" id="input-vsi" min="-2000" max="2000" step="100" value="0" oninput="updateValues()">
+          </div>
+
+          <button class="btn-reset" onclick="resetControls()">
+            <i class="fa-solid fa-rotate-left"></i> Restablecer Valores
+          </button>
+        </div>
+      </div>
+
+      <!-- INSTRUMENT DETAIL DISPLAY -->
+      <div class="detail-box">
+        <div class="detail-header">
+          <div class="detail-icon" id="detail-icon">
+            <i class="fa-solid fa-gauge-high"></i>
+          </div>
+          <div class="detail-title-container">
+            <h2 id="detail-name">Indicador de Velocidad (Airspeed Indicator)</h2>
+            <p id="detail-system">Sistema: Pitot-Estática</p>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-card">
+            <h3>¿Para qué sirve?</h3>
+            <p id="detail-purpose">Mide la velocidad del avión con respecto al aire circundante en nudos (KTS).</p>
+          </div>
+          <div class="detail-card">
+            <h3>¿Cómo funciona?</h3>
+            <p id="detail-function">Compara la presión dinámica (captada por el tubo Pitot) con la presión estática ambiente.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Lectura Clave</h3>
+            <p id="detail-key">Arcos de color: Blanco (flaps), Verde (operación normal), Amarillo (precaución), Línea Roja (VNE - No exceder).</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: THEORY -->
+    <div id="theory-tab" class="tab-content">
+      <div class="theory-section">
+        
+        <div class="theory-card">
+          <h2><i class="fa-solid fa-plane-up"></i> El Panel Básico "Six Pack"</h2>
+          <div class="theory-content">
+            <p>El estándar de instrumental analógico en la aviación general consta de 6 instrumentos fundamentales dispuestos en dos filas de tres. Esta disposición permite al piloto obtener rápidamente un escaneo mental de la actitud, velocidad y altitud de la aeronave.</p>
+            <ul class="theory-list">
+              <li><strong>Fila Superior (Actitud y Vuelo):</strong> Anemómetro, Horizonte Artificial y Altímetro.</li>
+              <li><strong>Fila Inferior (Maniobras y Rumbo):</strong> Coordinador de Giro, Indicador de Rumbo y Variómetro.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="theory-card">
+          <h2><i class="fa-solid fa-wind"></i> 1. Sistema Pitot-Estática</h2>
+          <div class="theory-content">
+            <p>Este sistema utiliza las presiones del aire exterior para hacer funcionar tres instrumentos clave:</p>
+            <ul class="theory-list">
+              <li><strong>Anemómetro (ASI):</strong> Requiere tanto la Presión Dinámica (Tubo Pitot) como la Presión Estática.</li>
+              <li><strong>Altímetro (ALT):</strong> Utiliza cápsulas aneroides que se expanden o contraen según los cambios de Presión Estática a medida que el avión sube o baja.</li>
+              <li><strong>Variómetro (VSI):</strong> Mide la tasa de cambio de la Presión Estática mediante un escape calibrado para indicar ascenso o descenso en pies por minuto.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="theory-card">
+          <h2><i class="fa-solid fa-compact-disc"></i> 2. Sistema Giroscópico</h2>
+          <div class="theory-content">
+            <p>Basado en las propiedades físicas de los giroscopios (rigidez en el espacio y precesión), alimentados por bomba de vacío o sistema eléctrico:</p>
+            <ul class="theory-list">
+              <li><strong>Horizonte Artificial (AI):</strong> Muestra la actitud exacta de la aeronave (pitch y roll) respecto al horizonte terrestre.</li>
+              <li><strong>Coordinador de Giro (TC):</strong> Indica la tasa de viraje y si el viraje está coordinado mediante la bola del inclinaómetro.</li>
+              <li><strong>Indicador de Rumbo (HI):</strong> Muestra la dirección magnética del avión sin las fluctuaciones ni errores de inclinación de una brújula magnética convencional.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Desarrollado por: <span>S1. Alfredo Belandria</span> | Plataforma de Aprendizaje Aeronáutico</p>
+  </footer>
+
+  <script>
+    // AUDIO ENGINE (Web Audio API)
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audioToggleBtn');
+      const icon = document.getElementById('audioIcon');
+
+      if (audioEnabled) {
+        btn.classList.add('active');
+        icon.className = 'fa-solid fa-volume-high';
+        playClickSound(600, 0.1);
+      } else {
+        btn.classList.remove('active');
+        icon.className = 'fa-solid fa-volume-xmark';
+      }
+    }
+
+    function playClickSound(freq = 400, duration = 0.05) {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // STATE
+    const state = {
+      speed: 100,
+      pitch: 0,
+      roll: 0,
+      alt: 2500,
+      heading: 0,
+      vsi: 0
+    };
+
+    const detailsData = {
+      asi: {
+        title: "Anemómetro (Airspeed Indicator - ASI)",
+        system: "Sistema: Pitot-Estática",
+        icon: "fa-gauge-high",
+        purpose: "Mide la velocidad del avión en relación con la masa de aire circundante en nudos (KTS).",
+        function: "Calcula la diferencia entre la Presión Dinámica del tubo Pitot y la Presión Estática de las tomas estáticas.",
+        key: "Arcos de colores: Blanco (flaps), Verde (operación normal), Amarillo (precaución), Línea Roja (VNE - Velocidad a no exceder nunca)."
+      },
+      ai: {
+        title: "Horizonte Artificial (Attitude Indicator - AI)",
+        system: "Sistema: Giroscópico (Bomba de Vacío)",
+        icon: "fa-horizon",
+        purpose: "Proporciona una referencia inmediata de la actitud de la aeronave en relación con el horizonte terrestre (cabeceo y alabeo).",
+        function: "Un giroscopio de eje vertical mantiene su posición fija en el espacio mientras el avión se mueve a su alrededor.",
+        key: "La barra del horizonte separa el cielo (azul) de la tierra (marrón). Las marcas de graduación indican grados de ladeo (10°, 20°, 30°, 60°)."
+      },
+      alt: {
+        title: "Altímetro (Altimeter - ALT)",
+        system: "Sistema: Pitot-Estática",
+        icon: "fa-ruler-vertical",
+        purpose: "Mide la altitud de la aeronave sobre el nivel medio del mar (MSL) en pies.",
+        function: "Contiene cápsulas aneroides selladas que se expanden o contraen a medida que cambia la presión atmosférica exterior.",
+        key: "Tiene 3 manecillas: la más corta de 10,000 ft, la mediana de 1,000 ft y la más larga y delgada de 100 ft. Incluye la ventana Kollsman para ajuste altimétrico."
+      },
+      tc: {
+        title: "Coordinador de Giro (Turn Coordinator - TC)",
+        system: "Sistema: Giroscópico Eléctrico",
+        icon: "fa-arrows-spin",
+        purpose: "Indica la tasa de viraje del avión y si el viraje está coordinado correctamente.",
+        function: "Usa un giroscopio inclinado para medir la tasa de alabeo y viraje. La bola flotante en el tubo (inclinómetro) indica la coordinación.",
+        key: "Si las alas del avión de juguete alinean con las marcas 'L/R', el avión realiza un viraje de tarifa estándar (3° por segundo / 360° en 2 min)."
+      },
+      hi: {
+        title: "Indicador de Rumbo (Heading Indicator - HI)",
+        system: "Sistema: Giroscópico (Bomba de Vacío)",
+        icon: "fa-compass",
+        purpose: "Mide el rumbo magnético de la nave sin las oscilaciones de una brújula magnética.",
+        function: "Un giroscopio de eje horizontal mantiene una dirección fija mientras la rosa de los vientos rota indicando la dirección del morro.",
+        key: "Debe reajustarse periódicamente con la brújula magnética del avión debido a la precesión giroscópica."
+      },
+      vsi: {
+        title: "Variómetro (Vertical Speed Indicator - VSI)",
+        system: "Sistema: Pitot-Estática",
+        icon: "fa-arrow-up-right-dots",
+        purpose: "Indica la velocidad vertical de ascenso o descenso en pies por minuto (FPM).",
+        function: "Mide el ritmo de cambio de la presión estática usando un tubo capilar de escape calibrado dentro del instrumento.",
+        key: "La aguja apunta arriba de cero para ascensos y abajo para descensos. Posee un ligero retraso de respuesta (lag) de 6 a 9 segundos."
+      }
+    };
+
+    // TAB SWITCHING
+    function switchTab(tabId) {
+      playClickSound(500, 0.05);
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (tabId === 'sim') {
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
+        document.getElementById('sim-tab').classList.add('active');
+      } else {
+        document.querySelectorAll('.nav-tab')[1].classList.add('active');
+        document.getElementById('theory-tab').classList.add('active');
+      }
+    }
+
+    function selectGauge(gaugeKey) {
+      playClickSound(700, 0.05);
+      document.querySelectorAll('.gauge-card').forEach(c => c.classList.remove('active-gauge'));
+      document.getElementById(`card-${gaugeKey}`).classList.add('active-gauge');
+
+      const data = detailsData[gaugeKey];
+      document.getElementById('detail-name').innerText = data.title;
+      document.getElementById('detail-system').innerText = data.system;
+      document.getElementById('detail-purpose').innerText = data.purpose;
+      document.getElementById('detail-function').innerText = data.function;
+      document.getElementById('detail-key').innerText = data.key;
+      document.getElementById('detail-icon').innerHTML = `<i class="fa-solid ${data.icon}"></i>`;
+    }
+
+    // CONTROLS & UPDATES
+    function updateValues() {
+      state.speed = parseInt(document.getElementById('input-speed').value);
+      state.pitch = parseInt(document.getElementById('input-pitch').value);
+      state.roll = parseInt(document.getElementById('input-roll').value);
+      state.alt = parseInt(document.getElementById('input-alt').value);
+      state.heading = parseInt(document.getElementById('input-heading').value);
+      state.vsi = parseInt(document.getElementById('input-vsi').value);
+
+      document.getElementById('val-speed').innerText = `${state.speed} KTS`;
+      document.getElementById('val-pitch').innerText = `${state.pitch}°`;
+      document.getElementById('val-roll').innerText = `${state.roll}°`;
+      document.getElementById('val-alt').innerText = `${state.alt.toLocaleString()} FT`;
+      
+      let cardDir = 'N';
+      if (state.heading >= 45 && state.heading < 135) cardDir = 'E';
+      else if (state.heading >= 135 && state.heading < 225) cardDir = 'S';
+      else if (state.heading >= 225 && state.heading < 315) cardDir = 'W';
+      document.getElementById('val-heading').innerText = `${state.heading}° (${cardDir})`;
+
+      document.getElementById('val-vsi').innerText = `${state.vsi} FPM`;
+
+      drawAllGauges();
+    }
+
+    function resetControls() {
+      playClickSound(300, 0.1);
+      document.getElementById('input-speed').value = 100;
+      document.getElementById('input-pitch').value = 0;
+      document.getElementById('input-roll').value = 0;
+      document.getElementById('input-alt').value = 2500;
+      document.getElementById('input-heading').value = 0;
+      document.getElementById('input-vsi').value = 0;
+      updateValues();
+    }
+
+    // CANVAS DRAWING FUNCTIONS
+    function initCanvases() {
+      drawAllGauges();
+    }
+
+    function drawAllGauges() {
+      drawASI();
+      drawAI();
+      drawALT();
+      drawTC();
+      drawHI();
+      drawVSI();
+    }
+
+    function drawBaseGauge(ctx, title) {
+      ctx.clearRect(0, 0, 200, 200);
+      ctx.save();
+      ctx.translate(100, 100);
+
+      // Bezel
+      ctx.beginPath();
+      ctx.arc(0, 0, 96, 0, Math.PI * 2);
+      ctx.fillStyle = '#111';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#333';
+      ctx.stroke();
+
+      // Dial face
+      ctx.beginPath();
+      ctx.arc(0, 0, 90, 0, Math.PI * 2);
+      ctx.fillStyle = '#050505';
+      ctx.fill();
+    }
+
+    // 1. ASI
+    function drawASI() {
+      const c = document.getElementById('canvas-asi');
+      const ctx = c.getContext('2d');
+      drawBaseGauge(ctx);
+
+      // Color Arcs
+      const startAngle = Math.PI * 0.75;
+      const totalAngle = Math.PI * 1.5;
+
+      // White Arc (Flaps 40-85)
+      ctx.beginPath();
+      ctx.arc(0, 0, 75, startAngle + totalAngle * (40/200), startAngle + totalAngle * (85/200));
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // Green Arc (Normal 50-140)
+      ctx.beginPath();
+      ctx.arc(0, 0, 75, startAngle + totalAngle * (50/200), startAngle + totalAngle * (140/200));
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#22c55e';
+      ctx.stroke();
+
+      // Yellow Arc (Caution 140-180)
+      ctx.beginPath();
+      ctx.arc(0, 0, 75, startAngle + totalAngle * (140/200), startAngle + totalAngle * (180/200));
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#eab308';
+      ctx.stroke();
+
+      // Red Line (VNE 180)
+      ctx.beginPath();
+      ctx.arc(0, 0, 75, startAngle + totalAngle * (180/200) - 0.02, startAngle + totalAngle * (180/200) + 0.02);
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#ef4444';
+      ctx.stroke();
+
+      // Ticks & Text
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+
+      for (let knots = 0; knots <= 200; knots += 20) {
+        const angle = startAngle + (knots / 200) * totalAngle;
+        const x1 = Math.cos(angle) * 82;
+        const y1 = Math.sin(angle) * 82;
+        const x2 = Math.cos(angle) * 70;
+        const y2 = Math.sin(angle) * 70;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+
+        if (knots > 0) {
+          const tx = Math.cos(angle) * 58;
+          const ty = Math.sin(angle) * 58 + 4;
+          ctx.fillText(knots, tx, ty);
+        }
+      }
+
+      ctx.font = '8px sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('KNOTS', 0, -30);
+
+      // Needle
+      const needleAngle = startAngle + (state.speed / 200) * totalAngle;
+      ctx.rotate(needleAngle);
+      ctx.beginPath();
+      ctx.moveTo(-10, 0);
+      ctx.lineTo(75, 0);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffb703';
+      ctx.stroke();
+
+      // Center Pin
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffb703';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // 2. ATTITUDE INDICATOR
+    function drawAI() {
+      const c = document.getElementById('canvas-ai');
+      const ctx = c.getContext('2d');
+      drawBaseGauge(ctx);
+
+      ctx.save();
+      // Roll rotation
+      ctx.rotate((state.roll * Math.PI) / 180);
+
+      // Pitch Translation (pixel offset)
+      const pitchOffset = state.pitch * 2.5;
+
+      // Sky (Blue)
+      ctx.beginPath();
+      ctx.rect(-80, -80 + pitchOffset, 160, 80);
+      ctx.fillStyle = '#0284c7';
+      ctx.fill();
+
+      // Ground (Brown)
+      ctx.beginPath();
+      ctx.rect(-80, 0 + pitchOffset, 160, 80);
+      ctx.fillStyle = '#78350f';
+      ctx.fill();
+
+      // Horizon Line
+      ctx.beginPath();
+      ctx.moveTo(-80, pitchOffset);
+      ctx.lineTo(80, pitchOffset);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // Pitch Marks
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      for (let p = -20; p <= 20; p += 10) {
+        if (p === 0) continue;
+        const y = pitchOffset - p * 2.5;
+        if (y > -75 && y < 75) {
+          ctx.beginPath();
+          ctx.moveTo(-15, y);
+          ctx.lineTo(15, y);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+
+      // Fixed Miniature Airplane (Red Wings)
+      ctx.beginPath();
+      ctx.rect(-45, -2, 30, 4);
+      ctx.rect(15, -2, 30, 4);
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+
+      // Center Dot
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffb703';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // 3. ALTIMETER
+    function drawALT() {
+      const c = document.getElementById('canvas-alt');
+      const ctx = c.getContext('2d');
+      drawBaseGauge(ctx);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
+        const x1 = Math.cos(angle) * 82;
+        const y1 = Math.sin(angle) * 82;
+        const x2 = Math.cos(angle) * 72;
+        const y2 = Math.sin(angle) * 72;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+
+        const tx = Math.cos(angle) * 58;
+        const ty = Math.sin(angle) * 58 + 4;
+        ctx.fillText(i, tx, ty);
+      }
+
+      ctx.font = '8px sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('ALTITUDE', 0, -30);
+
+      // 10,000 ft needle (Long thin)
+      const a10k = ((state.alt % 100000) / 100000) * Math.PI * 2 - Math.PI / 2;
+      ctx.save();
+      ctx.rotate(a10k);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -78);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+      ctx.restore();
+
+      // 1,000 ft needle (Short wide)
+      const a1k = ((state.alt % 10000) / 10000) * Math.PI * 2 - Math.PI / 2;
+      ctx.save();
+      ctx.rotate(a1k);
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.lineTo(0, -50);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+      ctx.restore();
+
+      // 100 ft needle (Long)
+      const a100 = ((state.alt % 1000) / 1000) * Math.PI * 2 - Math.PI / 2;
+      ctx.save();
+      ctx.rotate(a100);
+      ctx.beginPath();
+      ctx.moveTo(0, 15);
+      ctx.lineTo(0, -70);
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#ffb703';
+      ctx.stroke();
+      ctx.restore();
+
+      // Center Pin
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffb703';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // 4. TURN COORDINATOR
+    function drawTC() {
+      const c = document.getElementById('canvas-tc');
+      const ctx = c.getContext('2d');
+      drawBaseGauge(ctx);
+
+      // Inclinometer Tube (Inclinómetro / Bola)
+      ctx.beginPath();
+      ctx.arc(0, 0, 65, Math.PI * 0.35, Math.PI * 0.65);
+      ctx.lineWidth = 12;
+      ctx.strokeStyle = '#222';
+      ctx.stroke();
+
+      // Ball offset based on roll (simulated)
+      const ballAngle = Math.PI / 2 + (state.roll * 0.005);
+      const bx = Math.cos(ballAngle) * 65;
+      const by = Math.sin(ballAngle) * 65;
+
+      ctx.beginPath();
+      ctx.arc(bx, by, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      // Aircraft symbol (Rotates with Roll)
+      ctx.save();
+      ctx.rotate((state.roll * 0.5 * Math.PI) / 180);
+
+      // Toy Airplane
+      ctx.fillStyle = '#ffb703';
+      ctx.beginPath();
+      // Wings
+      ctx.rect(-40, -3, 80, 6);
+      // Fuselage
+      ctx.rect(-5, -20, 10, 30);
+      ctx.fill();
+
+      ctx.restore();
+
+      // Level Marks L/R
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      // Left mark
+      ctx.beginPath(); ctx.moveTo(-40, 12); ctx.lineTo(-40, 22); ctx.stroke();
+      // Right mark
+      ctx.beginPath(); ctx.moveTo(40, 12); ctx.lineTo(40, 22); ctx.stroke();
+
+      ctx.font = '9px sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'center';
+      ctx.fillText('2 MIN', 0, -45);
+
+      ctx.restore();
+    }
+
+    // 5. HEADING INDICATOR
+    function drawHI() {
+      const c = document.getElementById('canvas-hi');
+      const ctx = c.getContext('2d');
+      drawBaseGauge(ctx);
+
+      ctx.save();
+      // Rotate Compass Rose
+      ctx.rotate((-state.heading * Math.PI) / 180);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+
+      const dirs = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' };
+
+      for (let deg = 0; deg < 360; deg += 30) {
+        const rad = (deg * Math.PI) / 180 - Math.PI / 2;
+        const x1 = Math.cos(rad) * 82;
+        const y1 = Math.sin(rad) * 82;
+        const x2 = Math.cos(rad) * 72;
+        const y2 = Math.sin(rad) * 72;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+
+        const tx = Math.cos(rad) * 58;
+        const ty = Math.sin(rad) * 58 + 4;
+
+        if (dirs[deg]) {
+          ctx.fillStyle = '#ffb703';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText(dirs[deg], tx, ty);
+        } else {
+          ctx.fillStyle = '#fff';
+          ctx.font = '9px sans-serif';
+          ctx.fillText(deg / 10, tx, ty);
+        }
+      }
+
+      ctx.restore();
+
+      // Top Orange Lubber Line Indicator
+      ctx.beginPath();
+      ctx.moveTo(0, -85);
+      ctx.lineTo(-6, -72);
+      ctx.lineTo(6, -72);
+      ctx.closePath();
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+
+      // Center Fixed Miniature Plane
+      ctx.beginPath();
+      ctx.rect(-20, -2, 40, 4);
+      ctx.rect(-2, -15, 4, 30);
+      ctx.fillStyle = '#ffb703';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // 6. VSI
+    function drawVSI() {
+      const c = document.getElementById('canvas-vsi');
+      const ctx = c.getContext('2d');
+      drawBaseGauge(ctx);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+
+      // Scale points (-2000 to +2000 FPM)
+      // 0 is at Left (Math.PI)
+      const values = [0, 0.5, 1, 1.5, 2, -0.5, -1, -1.5, -2];
+
+      values.forEach(val => {
+        let angle = Math.PI - (val / 2) * (Math.PI * 0.75);
+
+        const x1 = Math.cos(angle) * 82;
+        const y1 = Math.sin(angle) * 82;
+        const x2 = Math.cos(angle) * 72;
+        const y2 = Math.sin(angle) * 72;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+
+        const tx = Math.cos(angle) * 58;
+        const ty = Math.sin(angle) * 58 + 4;
+        if (Number.isInteger(val)) {
+          ctx.fillText(Math.abs(val), tx, ty);
+        }
+      });
+
+      ctx.font = '8px sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('VERTICAL SPEED', 0, -35);
+      ctx.fillText('1000 FT PER MIN', 0, 35);
+
+      // Needle Calculation
+      const clampedVSI = Math.max(-2000, Math.min(2000, state.vsi));
+      const needleAngle = Math.PI - (clampedVSI / 2000) * (Math.PI * 0.75);
+
+      ctx.rotate(needleAngle);
+      ctx.beginPath();
+      ctx.moveTo(-10, 0);
+      ctx.lineTo(75, 0);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffb703';
+      ctx.stroke();
+
+      // Center Pin
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffb703';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // INITIALIZATION
+    window.onload = () => {
+      initCanvases();
+      selectGauge('asi');
+    };
+  </script>
+</body>
+</html>
